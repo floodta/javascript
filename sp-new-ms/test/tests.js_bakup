@@ -1,0 +1,201 @@
+/*
+* Copyright (c) 2016 by Tecnotree Ltd. All Rights Reserved.
+*/
+
+"use strict";
+
+const Promise = require("bluebird");
+const HttpStatus = require('http-status-codes');
+const _ = require('lodash');
+const redis = require("redis");
+const should = require('should');
+var events = require('events');
+
+const common = require('@tt-asa/common');
+const log = _.invoke(common, "logger", "sp-new-ms-tests");
+
+const tu = require('../src/utils/test');
+
+//const main = require('../src/main');
+
+const waitTimeMsecs = 500;  // 10 sec
+
+let blankDb = tu.blankDb;
+let createTestData = tu.createTestData;
+let tcCore = tu.tcCore;
+let tcReadCdr = tu.tcReadCdr;
+//let consume = main.consume;
+let tcCoreExpectTimeoutError = tu.tcCoreExpectTimeoutError;
+
+describe('sp-new-ms micro-service tests', () => {
+  let testSpDef, testSp, testMas;
+
+	let DataCDR = common.cdr.dataCdr;
+		 //let sampleCdr = new DataCDR(sharedPlanPackageDetails.subscriberId, config.cdr.SHARED_PLAN_RECHARGE);
+	let sampleCdr = new DataCDR('932220',130 );
+      log.debug("tzf data cdr", DataCDR);
+      log.debug("tzf data cdr", sampleCdr);
+/*
+before(done => {
+  let db = redis.createClient();
+
+    db.on('connect', function() {
+      log.debug("REDIS **READY**");
+      // Lets wait for catching up all next ids
+      return Promise.delay(waitTimeMsecs).then( () => {
+        return blankDb(db).then( () => {
+          return createTestData().then( objs => {
+            log.debug("Test data created - objs: " + JSON.stringify(objs));
+            let spDefObj = objs[0];
+            let spObj = objs[1];
+            let maObjs = objs[2];
+            log.debug("Test data created shared plan id: " + spObj.id);
+            // Setup test data for the test suite
+            testSpDef = spDefObj;
+            testSp = spObj;
+            testMas = maObjs;
+            return "ok";
+          });
+        });
+      })
+      .delay(waitTimeMsecs).then( () => {
+        done();
+      });
+    });
+  });
+
+*/
+
+	// need to put a cdr on kafka topic first use a cast
+	//sendCDR(DataCDR,requestId);
+  //---------------
+  it('QUERY..>put cdr on queue for initial test', done => {
+    tcCore(
+      done,
+      sampleCdr
+    );
+  });
+
+/*
+function tcCoreTest(done, correlationId, validateResponseMessageObjCb) {
+  log.debug("Started the test case...");
+	  var options = {
+		    "clientId": "sp-new-ms-test",
+				    "groupId": "sp-new-ms-test-group"
+		};
+	  consume("responseCDRDetails", correlationId, validateResponseMessageObjCb, options).then(function() {
+	  done();
+		return "ok";
+	 })
+	 .catch(function(e) {
+			log.error('Caught error: ' + e.toString());
+			done(e);
+	});
+}//tcCore
+*/
+/*
+  it('QUERY..>read cdr from queue ', done => {
+		 var correlationId = 123456;
+
+			tcReadCdr(
+				done,
+				(requestId) => {
+				  let requestMsgObj = {};
+					let headerAdditions = {};
+					headerAdditions.action = 'GET';
+						return {
+							'msgObj': requestMsgObj,
+							'headerAdditions': headerAdditions
+
+		        };
+
+				},
+				//createRequestPayloadPartsCb = function (correlationId) {
+					return {
+						let payloadParts = {};
+						return payloadParts;
+					},
+				//correlationId,
+			 /*function validateResponseMessageObjCb function(snsResponseMessage) {
+				//Validating the returned validation response 
+				should(snsResponseMessage).have.properties([ "jsonBody"]);
+				let receivedCdr = snsResponseMessage.jsonBody;
+				log.debug("------------------------------");
+		    log.debug("tzf " +JSON.stringify(snsResponseMessage));
+		    log.debug("tzf one "+ receivedCdr);
+		    log.debug("tzf two" + JSON.stringify(receivedCdr));
+			  log.debug("------------------------------");
+			}
+    );
+
+*/
+ /*   tcCoreTest(
+      done,
+			correlationId, 
+			 //function validateResponseMessageObjCb function(snsResponseMessage) {
+				//Validating the returned validation response 
+				should(snsResponseMessage).have.properties(["msgHeader", "jsonBody"]);
+				log.debug("------------------------------");
+		    log.debug(JSON.stringify(snsResponseMessage));
+		    log.debug((snsResponseMessage));
+			  log.debug("------------------------------");
+			}
+    );
+		*/
+  });
+	/*
+  //---------------
+  it('QUERY..>read cdr on queue for initial test', done => {
+    tcReadCdr(
+      done,
+//			  function createRequestPayloadPartsCb
+      (requestId) => {
+				let requestMsgObj = {};
+			  let headerAdditions = {};
+				headerAdditions.action = 'GET';
+
+				return {
+					'headerAdditions': headerAdditions
+					//'msgObj': requestMsgObj
+				//  'headerAdditions': headerAdditions
+        };
+
+       // let headerAdditions = {};
+       // headerAdditions.queryParameter = {
+			//		"id":"999" //testSp.id
+			//	};
+			//	headerAdditions.requestId = requestId;
+			//	headerAdditions.resource = '/sharedplans/:id/memberallowanceshares';
+			//	headerAdditions.action = 'GET';
+		//		return {
+		//		'headerAdditions': headerAdditions
+		//		};
+	    },
+
+//      need response
+  
+	
+     //function validateResponseMessageCb
+     (sgcsResponseMessage) => {
+       should(sgcsResponseMessage).have.properties(["responseHeader", "jsonBody"]);
+			 should(sgcsResponseMessage.responseHeader).have.properties("httpStatusCode");
+			 should(sgcsResponseMessage.responseHeader.httpStatusCode).equal(HttpStatus.OK);
+								
+      // should(sgcsResponseMessage.responseHeader).have.properties("httpStatusCode");
+      // should(sgcsResponseMessage.responseHeader.httpStatusCode).equal(400);
+      let cdrObj = sgcsResponseMessage.jsonBody;
+		  log.debug("The retrieved: CDR data");
+			log.debug("------------------------------");
+			log.debug(JSON.stringify(cdrObj));
+			log.debug(cdrObj);
+			 log.debug("------------------------------");
+
+       //Validating the returned error message
+		  // should(errObj).have.properties(["message"]);
+		  //should(errObj.message).equal("Invalid id: Shared plan not found");
+			}
+		);
+*/
+	
+  }); 
+});

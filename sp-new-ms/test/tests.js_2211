@@ -1,0 +1,125 @@
+/*
+* Copyright (c) 2016 by Tecnotree Ltd. All Rights Reserved.
+*/
+
+"use strict";
+
+const Promise = require("bluebird");
+const HttpStatus = require('http-status-codes');
+const _ = require('lodash');
+const redis = require("redis");
+const should = require('should');
+var events = require('events');
+
+const common = require('@tt-asa/common');
+const log = _.invoke(common, "logger", "sp-new-ms-tests");
+
+const tu = require('../src/utils/test');
+
+//const main = require('../src/main');
+
+const waitTimeMsecs = 500;  // 10 sec
+
+let blankDb = tu.blankDb;
+let createTestData = tu.createTestData;
+let tcCore = tu.tcCore;
+let writeCDR = tu.writeCDR;
+//let consume = main.consume;
+let tcCoreExpectTimeoutError = tu.tcCoreExpectTimeoutError;
+
+/*
+function tcCore(done, createRequestMsgObjCb, validateResponseMessageObjCb) {
+  log.debug("Started the test case...");
+  var replyEventEmitter = new events.EventEmitter();
+  var replyReceived = new Promise(function (resolve) {
+   replyEventEmitter.on('query.response.received', function (sbqsResponseMessage) {
+		resolve(sbqsResponseMessage);
+		});
+  });
+	log.debug("Reply promise created.");
+  var requestId = uuid.v4();
+	log.debug("Request id generated:" + requestId.toString());
+  var client = createTestKafkaClient(requestId.toString());
+  log.debug("Kafka client created.");
+	var producer = createTestKafkaProducer(client );
+	log.debug("Kafka producer created.");
+  var consumer = createTestKafkaConsumer(client, siteId);
+  log.debug("Kafka consumer created.");
+
+  //create Request Message
+	var requestMsgObj = createRequestMsgObjCb(requestId);
+	var siteIdStr = ('00' + siteId.toString()).slice(-2);
+	var siteIdTopicPostfix = "." + siteIdStr;
+	var topic = config.kafka.consumer.topic + siteIdTopicPostfix;
+
+	var payloads = [{
+		"topic": topic,
+		"messages": [JSON.stringify(requestMsgObj)]
+	}];
+	consumer.on('message', function(message) {
+		log.debug("+++Kafka message received+++:" + JSON.stringify(message));
+		var sbqsResponseMessage = JSON.parse(message.value);
+		if (sbqsResponseMessage.requestId === requestId) {
+			replyEventEmitter.emit('query.response.received', sbqsResponseMessage);
+		}
+
+  });
+	var producerReady = new Promise(function(resolve) {
+		producer.on('ready', function() {
+			resolve("ok");
+		});
+  });
+	producer.on('error', function() {});
+  consumer.on('error', function() {});
+
+  log.debug("Waiting for producer to be ready");
+  producerReady.then( function() {
+		log.debug("Producer ++ready++");
+	  log.debug("Sending kafka payloads: " + JSON.stringify(payloads));
+	  producer.sendAsync(payloads).then( function() {
+			log.debug("Kafka payloads has been sent okay!");
+		  return replyReceived;
+	  })
+	  .then(function(sbqsResponseMessage) {
+			log.debug("Validating the received query response message...");
+			validateResponseMessageObjCb(sbqsResponseMessage);
+			consumer.close(true, function() {});
+			client.close(function() {});
+			done();
+		})
+	  .timeout(
+			timeoutMsecs,
+			"Operation timed out"
+	  )
+	  .catch(function(e) {
+			log.debug('Caght error: ' + e.toString());
+		  log.debug('mute consumer & return to error to test-runner');
+		  consumer.close(true, function() {});
+			client.close( function() {});
+		  done(e);
+    });
+ });
+} //tcCore
+*/
+
+
+describe('sp-new-ms micro-service tests', () => {
+  let testSpDef, testSp, testMas;
+
+	let DataCDR = common.cdr.dataCdr;
+		 //let sampleCdr = new DataCDR(sharedPlanPackageDetails.subscriberId, config.cdr.SHARED_PLAN_RECHARGE);
+	let sampleCdr = new DataCDR('932220',130 );
+      log.debug("tzf data cdr", DataCDR);
+      log.debug("tzf data cdr", sampleCdr);
+
+	// need to put a cdr on kafka topic first use a cast
+	//sendCDR(DataCDR,requestId);
+  //---------------
+  it('QUERY..>put cdr on queue for initial test', done => {
+    tcCore(
+      done,
+      sampleCdr
+    );
+  });
+
+});

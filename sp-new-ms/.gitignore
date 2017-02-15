@@ -1,0 +1,5 @@
+# Exclusion the products of 'npm install'
+node_modules
+nbproject
+report.html
+dump.*
